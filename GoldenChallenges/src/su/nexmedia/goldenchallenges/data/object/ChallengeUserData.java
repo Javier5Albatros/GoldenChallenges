@@ -52,6 +52,12 @@ public class ChallengeUserData {
 		this.challengeProgresses = challengeProgresses;
 	}
 	
+	public double getProgressPercent() {
+		double sum = this.getChallengeProgresses().stream().map(prog -> prog.getProgressPercent())
+				.mapToDouble(d -> d).sum();
+		return sum / (double) this.getChallengeProgresses().size();
+	}
+	
 	/**
 	 * 
 	 * @param p2

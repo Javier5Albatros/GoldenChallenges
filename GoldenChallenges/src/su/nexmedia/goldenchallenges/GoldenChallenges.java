@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import su.nexmedia.engine.NexDataPlugin;
 import su.nexmedia.engine.commands.api.IGeneralCommand;
 import su.nexmedia.engine.core.Version;
+import su.nexmedia.engine.hooks.Hooks;
 import su.nexmedia.engine.utils.Reflex;
 import su.nexmedia.goldenchallenges.commands.OpenCommand;
 import su.nexmedia.goldenchallenges.commands.ResetCommand;
@@ -15,6 +16,7 @@ import su.nexmedia.goldenchallenges.config.Lang;
 import su.nexmedia.goldenchallenges.data.ChallengeDataHandler;
 import su.nexmedia.goldenchallenges.data.UserManager;
 import su.nexmedia.goldenchallenges.data.object.ChallengeUser;
+import su.nexmedia.goldenchallenges.hooks.external.PlaceholderHK;
 import su.nexmedia.goldenchallenges.manager.ChallengeManager;
 import su.nexmedia.goldenchallenges.nms.ChallengeNMS;
 
@@ -103,8 +105,9 @@ public class GoldenChallenges extends NexDataPlugin<GoldenChallenges, ChallengeU
 
 	@Override
 	public void registerHooks() {
-		// TODO Auto-generated method stub
-		
+		if (Hooks.hasPlaceholderAPI()) {
+			this.registerHook(Hooks.PLACEHOLDER_API, PlaceholderHK.class);
+		}
 	}
 
 	@Override
