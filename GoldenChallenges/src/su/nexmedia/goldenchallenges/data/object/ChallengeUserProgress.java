@@ -43,7 +43,7 @@ public class ChallengeUserProgress {
 	}
 	
 	public boolean addObjectiveProgress(@NotNull String id, double amount) {
-		if (!this.getChallengeGenerated().hasObjective(id) || this.isCompleted(id)) return false;
+		if (!this.getChallengeGenerated().hasObjective(id) || this.isCompleted(id) || this.isCompleted()) return false;
 		
 		id = id.toUpperCase();
 		double amount2 = this.getChallengeGenerated().getJobType().formatValue(amount);

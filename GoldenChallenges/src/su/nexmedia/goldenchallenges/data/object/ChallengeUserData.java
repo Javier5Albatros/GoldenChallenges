@@ -81,7 +81,7 @@ public class ChallengeUserData {
 		.filter(progress -> progress.addObjectiveProgress(id, amount)).collect(Collectors.toSet());
 		
 		set.forEach(progress -> {
-			if (progress.isCompleted(id) && p != null) {
+			if (progress.isCompleted() && p != null) {
 				ChallengeGenerated generated = progress.getChallengeGenerated();
 				
 				ChallengeSettings settings = GoldenChallengesAPI.getChallengeManager().getSettings(generated.getChallengeType());
