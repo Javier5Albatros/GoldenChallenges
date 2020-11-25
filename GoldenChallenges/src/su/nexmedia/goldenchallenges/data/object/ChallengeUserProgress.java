@@ -85,17 +85,21 @@ public class ChallengeUserProgress {
 	@NotNull
 	public UnaryOperator<String> replacePlaceholders(@NotNull String objId) {
 		ChallengeGenerated generated = this.getChallengeGenerated();
-		UnaryOperator<String> oper = line -> line.replace("%challenge-name%", generated.getName());
-		if (!objId.isEmpty()) {
-			oper.andThen(line -> line
-				.replace("%objective-type%", GoldenChallenges.getInstance().lang().getEnum(generated.getJobType()))
-				.replace("%objective-name%", generated.getJobType().formatObjective(objId))
-				.replace("%objective-amount%", NumberUT.format(generated.getObjectiveValue(objId)))
-				.replace("%objective-progress-current%", NumberUT.format(this.getObjectiveProgress(objId)))
-				.replace("%objective-progress-total%", NumberUT.format(generated.getObjectiveValue(objId)))
-				.replace("%objective-progress-percent%", NumberUT.format(this.getProgressPercent(objId)))
-			);
-		}
+		UnaryOperator<String> oper = line -> {
+			line = line.replace("%challenge-name%", generated.getName());
+			if (!objId.isEmpty()) {
+				line = line
+					.replace("%objective-type%", GoldenChallenges.getInstance().lang().getEnum(generated.getJobType()))
+					.replace("%objective-name%", generated.getJobType().formatObjective(objId))
+					.replace("%objective-amount%", NumberUT.format(generated.getObjectiveValue(objId)))
+					.replace("%objective-progress-current%", NumberUT.format(this.getObjectiveProgress(objId)))
+					.replace("%objective-progress-total%", NumberUT.format(generated.getObjectiveValue(objId)))
+					.replace("%objective-progress-percent%", NumberUT.format(this.getProgressPercent(objId)))
+					;
+			}
+			return line;
+		};
+		
 		return oper;
 	}
 }
