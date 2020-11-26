@@ -128,9 +128,9 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 		Map<ItemStack, Integer> mapNeed = new HashMap<>();
 		mapIng.forEach(itemNeed -> {
 			if (ItemUT.isAir(itemNeed)) return;
-			ItemStack itemCopy = new ItemStack(itemNeed);
+			ItemStack itemCopy = new ItemStack(itemNeed.getType());
 			
-			int amountNeed = itemCopy.getAmount();
+			int amountNeed = itemNeed.getAmount();
 			itemCopy.setAmount(1);
 			mapNeed.merge(itemCopy, amountNeed, Integer::sum);
 		});
@@ -139,9 +139,9 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 		Map<ItemStack, Integer> mapHas = new HashMap<>();
 		for (ItemStack itemHas : e.getInventory().getMatrix()) {
 			if (ItemUT.isAir(itemHas)) continue;
-			ItemStack itemCopy = new ItemStack(itemHas);
+			ItemStack itemCopy = new ItemStack(itemHas.getType());
 			
-			int amountHas = itemCopy.getAmount();
+			int amountHas = itemHas.getAmount();
 			itemCopy.setAmount(1);
 			mapHas.merge(itemCopy, amountHas, Integer::sum);
 		}
