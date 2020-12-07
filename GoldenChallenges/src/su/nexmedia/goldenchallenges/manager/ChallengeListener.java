@@ -26,6 +26,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTameEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.BrewEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.FurnaceExtractEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -345,7 +346,7 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 			});
 		}
 		else if (inv.getType() == InventoryType.ANVIL) {
-			if (e.getRawSlot() != 2) return;
+			if (e.getRawSlot() != 2 || e.getClick() == ClickType.MIDDLE) return;
 			
 			AnvilInventory aInventory = (AnvilInventory) inv;
 			if (aInventory.getRepairCost() <= 0) return;
@@ -384,17 +385,12 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 			});
 		}
 		else if (inv.getType() == InventoryType.GRINDSTONE) {
-			if (e.getRawSlot() != 2) return;
+			if (e.getRawSlot() != 2 || e.getClick() == ClickType.MIDDLE) return;
 			
 			ItemStack result = inv.getItem(2);
 			if (result == null || ItemUT.isAir(result)) return;
 			
-			this.plugin.getServer().getScheduler().runTask(plugin, () -> {
-				ItemStack result2 = inv.getItem(2);
-				if (result2 != null || !ItemUT.isAir(result2)) return;
-				
-				this.manager.progressChallenge(player, ChallengeJobType.ITEM_DISENCHANT, result.getType().name(), result.getAmount());
-			});
+			this.manager.progressChallenge(player, ChallengeJobType.ITEM_DISENCHANT, result.getType().name(), 1);
 		}
 	}
 }
