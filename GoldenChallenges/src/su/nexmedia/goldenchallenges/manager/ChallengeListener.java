@@ -55,6 +55,7 @@ import su.nexmedia.engine.NexPlugin;
 import su.nexmedia.engine.hooks.external.MythicMobsHK;
 import su.nexmedia.engine.manager.IListener;
 import su.nexmedia.engine.utils.ItemUT;
+import su.nexmedia.engine.utils.PlayerUT;
 import su.nexmedia.goldenchallenges.GoldenChallenges;
 import su.nexmedia.goldenchallenges.api.events.PlayerChallengeCompleteEvent;
 import su.nexmedia.goldenchallenges.api.events.PlayerChallengeObjectiveEvent;
@@ -376,12 +377,21 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 			
 			ItemStack result = recipe.getResult();
 			int uses = recipe.getUses();
+			int userHas = PlayerUT.countItem(player, result);
 			
 			plugin.getServer().getScheduler().runTask(plugin, () -> {
 				int uses2 = recipe.getUses();
 				if (uses2 <= uses) return;
 				
-				this.manager.progressChallenge(player, ChallengeJobType.ITEM_TRADE, result.getType().name(), result.getAmount());
+				int amount = 1;
+				if (e.isShiftClick()) {
+					int resultSize = result.getAmount();
+					int userNow = PlayerUT.countItem(player, result);
+					int diff = userNow - userHas;
+					amount = (int) ((double) diff / (double) resultSize);
+				}
+				
+				this.manager.progressChallenge(player, ChallengeJobType.ITEM_TRADE, result.getType().name(), amount);
 			});
 		}
 		else if (inv.getType() == InventoryType.GRINDSTONE) {

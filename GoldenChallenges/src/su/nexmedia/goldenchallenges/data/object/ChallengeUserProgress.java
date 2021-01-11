@@ -7,6 +7,7 @@ import java.util.function.UnaryOperator;
 import org.jetbrains.annotations.NotNull;
 
 import su.nexmedia.engine.utils.NumberUT;
+import su.nexmedia.engine.utils.constants.JStrings;
 import su.nexmedia.goldenchallenges.GoldenChallenges;
 import su.nexmedia.goldenchallenges.manager.api.ChallengeGenerated;
 
@@ -43,6 +44,7 @@ public class ChallengeUserProgress {
 	}
 	
 	public boolean addObjectiveProgress(@NotNull String id, double amount) {
+		if (!this.getChallengeGenerated().hasObjectiveExact(id)) id = JStrings.MASK_ANY;
 		if (!this.getChallengeGenerated().hasObjective(id) || this.isCompleted(id) || this.isCompleted()) return false;
 		
 		id = id.toUpperCase();

@@ -132,6 +132,10 @@ public class ChallengeGenerated {
 		return objectives;
 	}
 	
+	public boolean hasObjectiveExact(@NotNull String id) {
+		return this.objectives.containsKey(id.toUpperCase());
+	}
+	
 	public boolean hasObjective(@NotNull String id) {
 		return this.objectives.containsKey(id.toUpperCase()) || this.objectives.containsKey(JStrings.MASK_ANY);
 	}

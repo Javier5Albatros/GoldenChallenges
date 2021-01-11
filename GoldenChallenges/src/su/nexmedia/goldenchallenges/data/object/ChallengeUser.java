@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import su.nexmedia.engine.data.users.IAbstractUser;
+import su.nexmedia.engine.utils.constants.JStrings;
 import su.nexmedia.engine.utils.random.Rnd;
 import su.nexmedia.goldenchallenges.GoldenChallenges;
 import su.nexmedia.goldenchallenges.api.events.PlayerChallengeCompleteEvent;
@@ -157,7 +158,10 @@ public class ChallengeUser extends IAbstractUser<GoldenChallenges> {
 					plugin.getPluginManager().callEvent(event);
 				}
 				else {
-					PlayerChallengeObjectiveEvent event = new PlayerChallengeObjectiveEvent(op, challengeType, this, progress, obj, amount);
+					String obj2 = obj;
+					if (!progress.getChallengeGenerated().hasObjectiveExact(obj)) obj2 = JStrings.MASK_ANY;
+					
+					PlayerChallengeObjectiveEvent event = new PlayerChallengeObjectiveEvent(op, challengeType, this, progress, obj2, amount);
 					plugin.getPluginManager().callEvent(event);
 				}
 			});

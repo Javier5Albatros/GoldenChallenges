@@ -65,7 +65,7 @@ public class PlaceholderHK extends NHook<GoldenChallenges> {
 				if (cType == null) return null;
 				
 				ChallengeUser user = plugin.getUserManager().getOrLoadUser(player);
-				return NumberUT.format(user.getChallengeData(cType).getProgressPercent());
+				return user == null ? "N/A" : NumberUT.format(user.getChallengeData(cType).getProgressPercent());
 			}
 			
 			return null;

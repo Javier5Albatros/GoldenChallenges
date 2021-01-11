@@ -186,6 +186,8 @@ public class ChallengeSettings extends LoadableItem implements Cleanable {
 			}
 			
 			ChallengeUser user = plugin.getUserManager().getOrLoadUser(p);
+			if (user == null) return;
+			
 			ChallengeUserData userData = user.getChallengeData(settings.getType());
 			
 			user.validateChallenges();

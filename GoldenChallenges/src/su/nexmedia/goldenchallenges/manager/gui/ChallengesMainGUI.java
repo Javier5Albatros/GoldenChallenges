@@ -99,6 +99,8 @@ public class ChallengesMainGUI extends NGUI<GoldenChallenges> {
 		
 		ChallengeType challengeType = (ChallengeType) type;
 		ChallengeUser user = plugin.getUserManager().getOrLoadUser(p);
+		if (user == null) return;
+		
 		ChallengeUserData userData = user.getChallengeData(challengeType);
 		
 		int incompleted = (int) userData.getChallengeProgresses().stream()
