@@ -77,7 +77,7 @@ public class ResetCommand extends ISubCommand<GoldenChallenges> {
 			plugin.lang().Command_Reset_Done
 				.replace("%type%", plugin.lang().getEnum(type2))
 				.replace("%player%", user.getName())
-				.send(sender, true);
+				.send(sender);
 		}
 	}
 }

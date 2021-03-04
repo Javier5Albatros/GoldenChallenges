@@ -112,7 +112,7 @@ public class ChallengeSettings extends LoadableItem implements Cleanable {
 	
 	public void openGUI(@NotNull Player player) {
 		if (!this.getType().hasPermission(player)) {
-			plugin.lang().Error_NoPerm.send(player, true);
+			plugin.lang().Error_NoPerm.send(player);
 			return;
 		}
 		this.gui.open(player, 1);

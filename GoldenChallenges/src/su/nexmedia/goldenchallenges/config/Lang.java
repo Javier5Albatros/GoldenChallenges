@@ -3,12 +3,13 @@ package su.nexmedia.goldenchallenges.config;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.jetbrains.annotations.NotNull;
 
-import su.nexmedia.engine.config.api.ILangTemplate;
+import su.nexmedia.engine.config.api.ILangMsg;
+import su.nexmedia.engine.core.config.CoreLang;
 import su.nexmedia.goldenchallenges.GoldenChallenges;
 import su.nexmedia.goldenchallenges.manager.type.ChallengeJobType;
 import su.nexmedia.goldenchallenges.manager.type.ChallengeType;
 
-public class Lang extends ILangTemplate {
+public class Lang extends CoreLang {
 
 	public Lang(@NotNull GoldenChallenges plugin) {
 		super(plugin);
@@ -21,15 +22,15 @@ public class Lang extends ILangTemplate {
 		this.setupEnum(DamageCause.class);
 	}
 
-	public JLangMsg Command_Open_Desc = new JLangMsg("Open challenges menu.");
-	public JLangMsg Command_Open_Usage = new JLangMsg("[type]");
+	public ILangMsg Command_Open_Desc = new ILangMsg(this, "Open challenges menu.");
+	public ILangMsg Command_Open_Usage = new ILangMsg(this, "[type]");
 	
-	public JLangMsg Command_Reset_Desc = new JLangMsg("Resets player's challenges.");
-	public JLangMsg Command_Reset_Usage = new JLangMsg("<player> [type]");
-	public JLangMsg Command_Reset_Done = new JLangMsg("Reset &a%type% &7challenges for &a%player%&7!");
+	public ILangMsg Command_Reset_Desc = new ILangMsg(this, "Resets player's challenges.");
+	public ILangMsg Command_Reset_Usage = new ILangMsg(this, "<player> [type]");
+	public ILangMsg Command_Reset_Done = new ILangMsg(this, "Reset &a%type% &7challenges for &a%player%&7!");
 	
-	public JLangMsg Challenge_Notify_Objective_Progress = new JLangMsg("[ACTION_BAR] %challenge-name%: &e%objective-name% &f%objective-progress-current%&7/&f%objective-progress-total%");
-	public JLangMsg Challenge_Notify_Challenge_Completed = new JLangMsg("[ACTION_BAR] %challenge-name%: &a&lCOMPLETED!");
+	public ILangMsg Challenge_Notify_Objective_Progress = new ILangMsg(this, "{message: ~type: ACTION_BAR;} %challenge-name%: &e%objective-name% &f%objective-progress-current%&7/&f%objective-progress-total%");
+	public ILangMsg Challenge_Notify_Challenge_Completed = new ILangMsg(this, "{message: ~type: ACTION_BAR;} %challenge-name%: &a&lCOMPLETED!");
 	
-	public JLangMsg Other_Any = new JLangMsg("Any");
+	public ILangMsg Other_Any = new ILangMsg(this, "Any");
 }

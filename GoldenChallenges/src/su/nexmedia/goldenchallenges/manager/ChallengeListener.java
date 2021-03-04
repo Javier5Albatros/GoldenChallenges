@@ -1,13 +1,13 @@
 package su.nexmedia.goldenchallenges.manager;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.Block;
 import org.bukkit.block.BrewingStand;
+import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
@@ -18,6 +18,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.enchantment.EnchantItemEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityBreedEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -40,9 +41,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.MerchantInventory;
 import org.bukkit.inventory.MerchantRecipe;
-import org.bukkit.inventory.Recipe;
-import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -52,6 +50,7 @@ import org.bukkit.projectiles.ProjectileSource;
 import org.jetbrains.annotations.NotNull;
 
 import su.nexmedia.engine.NexPlugin;
+import su.nexmedia.engine.hooks.Hooks;
 import su.nexmedia.engine.hooks.external.MythicMobsHK;
 import su.nexmedia.engine.manager.IListener;
 import su.nexmedia.engine.utils.ItemUT;
@@ -59,6 +58,7 @@ import su.nexmedia.engine.utils.PlayerUT;
 import su.nexmedia.goldenchallenges.GoldenChallenges;
 import su.nexmedia.goldenchallenges.api.events.PlayerChallengeCompleteEvent;
 import su.nexmedia.goldenchallenges.api.events.PlayerChallengeObjectiveEvent;
+import su.nexmedia.goldenchallenges.config.Config;
 import su.nexmedia.goldenchallenges.data.object.ChallengeUserProgress;
 import su.nexmedia.goldenchallenges.manager.type.ChallengeJobType;
 
@@ -68,6 +68,7 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 	
 	private static final String META_BREWING_UUID = "CHALLENGES_BREWING";
 	private static final String META_BLOCK_PLACED = "CHALLEGNES_USER_BLOCK";
+	private static final String META_ENTITY_SPAWNER = "CHALLENGERS_ENTITY_SPAWNER";
 	
 	public ChallengeListener(@NotNull GoldenChallenges plugin, @NotNull ChallengeManager manager) {
 		super(plugin);
@@ -83,7 +84,7 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 		String objId = e.getObjective();
 		plugin.lang().Challenge_Notify_Objective_Progress
 			.replace(progress.replacePlaceholders(objId))
-			.send(player, false);
+			.send(player);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -94,15 +95,32 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 		ChallengeUserProgress progress = e.getProgress();
 		plugin.lang().Challenge_Notify_Challenge_Completed
 			.replace(progress.replacePlaceholders(""))
-			.send(player, false);
+			.send(player);
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void onChallengeEntitySpawn(CreatureSpawnEvent e) {
+		if (Config.SETTINGS_OBJECTIVES_KILL_ENTITY_COUNT_SPAWNER) return;
+		e.getEntity().setMetadata(META_ENTITY_SPAWNER, new FixedMetadataValue(plugin, true));
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onChallengeBlockBreak(BlockBreakEvent e) {
-		if (e.getBlock().hasMetadata(META_BLOCK_PLACED)) return;
+		Block block = e.getBlock();
+		if (block.hasMetadata(META_BLOCK_PLACED)) return;
 		
-		Player p = e.getPlayer();
-		this.manager.progressChallenge(p, ChallengeJobType.BLOCK_BREAK, e.getBlock().getType().name(), 1);
+		// Do not give money for ungrowth plants.
+		BlockData blockData = block.getBlockData();
+		Material blockType = block.getType();
+		if (blockType != Material.SUGAR_CANE && blockData instanceof Ageable) {
+			Ageable age = (Ageable) blockData;
+			if (age.getAge() < age.getMaximumAge()) {
+				return;
+			}
+		}
+		
+		Player player = e.getPlayer();
+		this.manager.progressChallenge(player, ChallengeJobType.BLOCK_BREAK, blockType.name(), 1);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -114,75 +132,24 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 	public void onChallengeItemCraft(CraftItemEvent e) {
 		ItemStack item = e.getCurrentItem();
 		if (item == null || ItemUT.isAir(item)) return;
-		
-		// Get recipe items.
-		List<ItemStack> mapIng;
-		Recipe r = e.getRecipe();
-		if (r instanceof ShapedRecipe) {
-			mapIng = new ArrayList<>(((ShapedRecipe)r).getIngredientMap().values());
-		}
-		else if (r instanceof ShapelessRecipe) {
-			mapIng = ((ShapelessRecipe)r).getIngredientList();
-		}
-		else return;
-		
-		// Store recipe minimal items amount requirement.
-		Map<ItemStack, Integer> mapNeed = new HashMap<>();
-		mapIng.forEach(itemNeed -> {
-			if (ItemUT.isAir(itemNeed)) return;
-			ItemStack itemCopy = new ItemStack(itemNeed.getType());
-			
-			int amountNeed = itemNeed.getAmount();
-			itemCopy.setAmount(1);
-			mapNeed.merge(itemCopy, amountNeed, Integer::sum);
-		});
-		
-		// Store craft matrix items amount.
-		Map<ItemStack, Integer> mapHas = new HashMap<>();
-		for (ItemStack itemHas : e.getInventory().getMatrix()) {
-			if (ItemUT.isAir(itemHas)) continue;
-			ItemStack itemCopy = new ItemStack(itemHas.getType());
-			
-			int amountHas = itemHas.getAmount();
-			itemCopy.setAmount(1);
-			mapHas.merge(itemCopy, amountHas, Integer::sum);
-		}
-		
-		// Get the maximal possible amount of crafted item.
-		int lowest = -1;
-		for (Map.Entry<ItemStack, Integer> en : mapNeed.entrySet()) {
-			int amountCan = (int) ((double) mapHas.getOrDefault(en.getKey(), 0) / (double) en.getValue());
-			if (lowest < 0 || amountCan <= lowest) lowest = amountCan;
-		}
-		
-		int amount = e.isShiftClick() ? lowest : 1;
-		int space = 0;
-		
-		// Calculate available inventory space and fine item amount.
+
 		Player player = (Player) e.getWhoClicked();
-		for (ItemStack store : player.getInventory().getStorageContents()) {
-			if (store == null || ItemUT.isAir(store)) {
-				space += item.getMaxStackSize();
-			}
-			else if (store.isSimilar(item)) {
-				space += Math.max(0, (store.getMaxStackSize() - store.getAmount()));
-			}
-			
-		}
-		amount = Math.min(amount, space);
+		ItemStack craft = new ItemStack(item);
+		String type = craft.getType().name();
 		
-		// Calculate cursor amount for stackable items.
-		ItemStack cursor = e.getCursor();
-		if (!e.isShiftClick()) {
-			if (cursor != null && !ItemUT.isAir(cursor)) {
-				amount--;
-				int canAdd = cursor.getMaxStackSize() - cursor.getAmount();
-				amount += Math.min(item.getAmount(), canAdd);
-			}
+		// Идеальный вариант
+		// Считаем до, считаем после, разницу записываем в прогресс хД
+		if (e.isShiftClick()) {
+			int has = PlayerUT.countItem(player, craft);
+			this.plugin.getServer().getScheduler().runTask(plugin, () -> {
+				int now = PlayerUT.countItem(player, craft);
+				int crafted = now - has;
+				this.manager.progressChallenge(player, ChallengeJobType.ITEM_CRAFT, type, crafted);
+			});
 		}
-		if (amount <= 0) return;
-		
-		this.manager.progressChallenge(player, ChallengeJobType.ITEM_CRAFT, item.getType().name(), amount);
+		else {
+			this.manager.progressChallenge(player, ChallengeJobType.ITEM_CRAFT, type, 1);
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -226,6 +193,8 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChallengeEntityKill(EntityDeathEvent e) {
 		LivingEntity entity = e.getEntity();
+		if (entity.hasMetadata(META_ENTITY_SPAWNER)) return;
+		
 		Player killer = entity.getKiller();
 		if (killer == null) return;
 		
@@ -250,7 +219,7 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 		if (!(bred instanceof Player)) return;
 		
 		Player player = (Player) bred;
-		this.manager.progressChallenge(player, ChallengeJobType.ENTITY_BREED, e.getEntityType().name(), 1);
+		this.manager.progressChallenge(player, ChallengeJobType.ENTITY_BREED, e.getEntity().getType().name(), 1);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -268,13 +237,13 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 		DamageCause cause = e.getCause();
 		double damage = e.getDamage();
 		
-		if (victim instanceof Player) {
+		if (victim instanceof Player && !Hooks.isNPC(victim)) {
 			Player playerVictim = (Player) victim;
 			this.manager.progressChallenge(playerVictim, ChallengeJobType.DAMAGE_RECEIVE, cause.name(), damage);
 		}
 		if (ede != null) {
 			Entity damager = ede.getDamager();
-			if (damager instanceof Player) {
+			if (damager instanceof Player && !Hooks.isNPC(damager)) {
 				Player playerDamager = (Player) damager;
 				this.manager.progressChallenge(playerDamager, ChallengeJobType.DAMAGE_INFLICT, cause.name(), damage);
 			}

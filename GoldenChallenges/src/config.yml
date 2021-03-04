@@ -20,6 +20,11 @@ challenge-types:
   WEEKLY: true
   MONTHLY: true
 
+settings:
+  objectives:
+    kill-entity:
+      count-spawner-mobs: false
+
 gui:
   title: Challenges
   size: 27
