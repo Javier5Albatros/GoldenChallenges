@@ -125,6 +125,10 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onChallengeBlockPlace(BlockPlaceEvent e) {
+		Block block = e.getBlock();
+		BlockData blockData = block.getBlockData();
+		if (blockData instanceof Ageable) return;
+		
 		e.getBlock().setMetadata(META_BLOCK_PLACED, new FixedMetadataValue(plugin, true));
 	}
 	
