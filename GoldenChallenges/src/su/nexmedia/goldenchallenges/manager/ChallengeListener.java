@@ -19,6 +19,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityBreedEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -100,8 +101,10 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onChallengeEntitySpawn(CreatureSpawnEvent e) {
-		if (Config.SETTINGS_OBJECTIVES_KILL_ENTITY_COUNT_SPAWNER) return;
-		e.getEntity().setMetadata(META_ENTITY_SPAWNER, new FixedMetadataValue(plugin, true));
+		SpawnReason reason = e.getSpawnReason();
+		if (!Config.SETTINGS_OBJECTIVES_KILL_ENTITY_COUNT_SPAWNER && reason == SpawnReason.SPAWNER) {
+			e.getEntity().setMetadata(META_ENTITY_SPAWNER, new FixedMetadataValue(plugin, true));
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -109,10 +112,10 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 		Block block = e.getBlock();
 		if (block.hasMetadata(META_BLOCK_PLACED)) return;
 		
-		// Do not give money for ungrowth plants.
+		// Do not give money for ungrowth plants, but ignore sugar cane and cactus.
 		BlockData blockData = block.getBlockData();
 		Material blockType = block.getType();
-		if (blockType != Material.SUGAR_CANE && blockData instanceof Ageable) {
+		if (blockType != Material.SUGAR_CANE && blockType != Material.CACTUS && blockData instanceof Ageable) {
 			Ageable age = (Ageable) blockData;
 			if (age.getAge() < age.getMaximumAge()) {
 				return;
@@ -127,7 +130,8 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 	public void onChallengeBlockPlace(BlockPlaceEvent e) {
 		Block block = e.getBlock();
 		BlockData blockData = block.getBlockData();
-		if (blockData instanceof Ageable) return;
+		Material type = block.getType();
+		if (blockData instanceof Ageable && type != Material.CACTUS && type != Material.SUGAR_CANE) return;
 		
 		e.getBlock().setMetadata(META_BLOCK_PLACED, new FixedMetadataValue(plugin, true));
 	}
