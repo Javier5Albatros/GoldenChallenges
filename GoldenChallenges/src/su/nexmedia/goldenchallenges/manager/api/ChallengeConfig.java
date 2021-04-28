@@ -13,7 +13,6 @@ import su.nexmedia.engine.config.api.JYML;
 import su.nexmedia.engine.manager.LoadableItem;
 import su.nexmedia.engine.utils.CollectionsUT;
 import su.nexmedia.engine.utils.StringUT;
-import su.nexmedia.engine.utils.actions.ActionManipulator;
 import su.nexmedia.engine.utils.eval.Evaluator;
 import su.nexmedia.engine.utils.random.Rnd;
 import su.nexmedia.goldenchallenges.GoldenChallenges;
@@ -36,6 +35,18 @@ public class ChallengeConfig extends LoadableItem {
 		}
 		this.icon = cfg.getItem("icon");
 		this.generator = new Generator();
+		
+		// Notify about invalid rewards and remove them from the generator.
+		this.generator.getRewardsList().values().forEach(rewardIds -> {
+			rewardIds.removeIf(rewardId -> {
+				RewardInfo rewardInfo = plugin.getChallengeManager().getChallengeReward(rewardId);
+				if (rewardInfo == null) {
+					plugin.warn("Invalid reward id '" + rewardId + "' in '" + this.getId() + "' challenge!");
+					return true;
+				}
+				return false;
+			});
+		});
 	}
 
 	@Override
@@ -84,7 +95,7 @@ public class ChallengeConfig extends LoadableItem {
 		
 		private TreeMap<Integer, Double> rewardsMin;
 		private TreeMap<Integer, Double> rewardsMax;
-		private TreeMap<Integer, Map<String, RewardInfo>> rewardsList;
+		private TreeMap<Integer, List<String>> rewardsList;
 		
 		Generator() {
 			this.cfg = ChallengeConfig.this.getConfig();
@@ -145,15 +156,8 @@ public class ChallengeConfig extends LoadableItem {
 				int level = StringUT.getInteger(sLevel, -1);
 				if (level <= 0) return;
 				
-				this.cfg.getSection(path + "rewards.list." + sLevel).forEach(rewardId -> {
-					String path2 = path + "rewards.list." + sLevel + "." + rewardId + ".";
-					
-					List<String> lore = StringUT.color(cfg.getStringList(path2 + "lore"));
-					ActionManipulator manipulator = new ActionManipulator(plugin, cfg, path2 + "custom-actions");
-					RewardInfo rewardInfo = new RewardInfo(rewardId, lore, manipulator);
-					
-					this.rewardsList.computeIfAbsent(level, map -> new HashMap<>()).put(rewardInfo.getId(), rewardInfo);
-				});
+				List<String> rewardIds = this.cfg.getStringList(path + "rewards.list." + sLevel);
+				this.rewardsList.put(level, rewardIds);
 			});
 		}
 		
@@ -236,7 +240,7 @@ public class ChallengeConfig extends LoadableItem {
 		}
 		
 		@NotNull
-		public TreeMap<Integer, Map<String, RewardInfo>> getRewardsList() {
+		public TreeMap<Integer, List<String>> getRewardsList() {
 			return rewardsList;
 		}
 		
@@ -267,34 +271,6 @@ public class ChallengeConfig extends LoadableItem {
 		public final double getMapValue(@NotNull TreeMap<Integer, Double> map, int lvl, double def) {
 			Map.Entry<Integer, Double> e = map.floorEntry(lvl);
 			return e != null ? e.getValue() : def;
-		}
-		
-		public class RewardInfo {
-			
-			private String id;
-			private List<String> lore;
-			private ActionManipulator actionManipulator;
-			
-			public RewardInfo(@NotNull String id, @NotNull List<String> lore, @NotNull ActionManipulator actionManipulator) {
-				this.id = id.toLowerCase();
-				this.lore = lore;
-				this.actionManipulator = actionManipulator;
-			}
-			
-			@NotNull
-			public String getId() {
-				return id;
-			}
-			
-			@NotNull
-			public List<String> getLore() {
-				return lore;
-			}
-			
-			@NotNull
-			public ActionManipulator getActionManipulator() {
-				return actionManipulator;
-			}
 		}
 	}
 }

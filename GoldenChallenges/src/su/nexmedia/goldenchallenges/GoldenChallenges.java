@@ -8,6 +8,7 @@ import su.nexmedia.engine.NexDataPlugin;
 import su.nexmedia.engine.commands.api.IGeneralCommand;
 import su.nexmedia.engine.core.Version;
 import su.nexmedia.engine.hooks.Hooks;
+import su.nexmedia.engine.modules.IExternalModule.LoadPriority;
 import su.nexmedia.engine.utils.Reflex;
 import su.nexmedia.goldenchallenges.commands.OpenCommand;
 import su.nexmedia.goldenchallenges.commands.ResetCommand;
@@ -50,6 +51,9 @@ public class GoldenChallenges extends NexDataPlugin<GoldenChallenges, ChallengeU
 		
 		this.challengeManager = new ChallengeManager(this);
 		this.challengeManager.setup();
+		
+		this.getModuleManager().registerExternal(LoadPriority.HIGH);
+		this.getModuleManager().registerExternal(LoadPriority.LOW);
 	}
 
 	@Override

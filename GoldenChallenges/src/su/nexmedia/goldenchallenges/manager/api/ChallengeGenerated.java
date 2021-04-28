@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 
 import su.nexmedia.engine.utils.constants.JStrings;
 import su.nexmedia.engine.utils.random.Rnd;
-import su.nexmedia.goldenchallenges.manager.api.ChallengeConfig.Generator.RewardInfo;
 import su.nexmedia.goldenchallenges.manager.type.ChallengeJobType;
 import su.nexmedia.goldenchallenges.manager.type.ChallengeType;
 
@@ -92,8 +91,8 @@ public class ChallengeGenerated {
 		double rewardsMax = generator.getMapValue(generator.getRewardsMax(), this.getLevel(), 0D);
 		int rewardsAmount = Rnd.get((int) rewardsMin, (int) rewardsMax);
 		
-		Entry<Integer, Map<String, RewardInfo>> rewardsMap = generator.getRewardsList().floorEntry(this.getLevel());
-		List<String> rewardsRaw = rewardsMap != null ? new ArrayList<>(rewardsMap.getValue().keySet()) : Collections.emptyList();
+		Entry<Integer, List<String>> rewardsMap = generator.getRewardsList().floorEntry(this.getLevel());
+		List<String> rewardsRaw = rewardsMap != null ? new ArrayList<>(rewardsMap.getValue()) : Collections.emptyList();
 		
 		for (int rewardCount = 0; rewardCount < rewardsAmount; rewardCount++) {
 			if (rewardsRaw.isEmpty()) break;

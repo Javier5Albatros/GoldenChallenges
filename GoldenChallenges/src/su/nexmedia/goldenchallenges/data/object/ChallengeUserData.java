@@ -1,8 +1,7 @@
 package su.nexmedia.goldenchallenges.data.object;
 
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -11,10 +10,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import su.nexmedia.goldenchallenges.api.GoldenChallengesAPI;
-import su.nexmedia.goldenchallenges.manager.api.ChallengeConfig;
-import su.nexmedia.goldenchallenges.manager.api.ChallengeConfig.Generator.RewardInfo;
 import su.nexmedia.goldenchallenges.manager.api.ChallengeGenerated;
-import su.nexmedia.goldenchallenges.manager.api.ChallengeSettings;
+import su.nexmedia.goldenchallenges.manager.api.RewardInfo;
 import su.nexmedia.goldenchallenges.manager.type.ChallengeJobType;
 
 public class ChallengeUserData {
@@ -84,20 +81,14 @@ public class ChallengeUserData {
 			if (progress.isCompleted() && p != null) {
 				ChallengeGenerated generated = progress.getChallengeGenerated();
 				
-				ChallengeSettings settings = GoldenChallengesAPI.getChallengeManager().getSettings(generated.getChallengeType());
-				if (settings == null) return;
+				List<RewardInfo> rewards = generated.getRewards().stream()
+					.map((rewardId) -> {
+						return GoldenChallengesAPI.getChallengeManager().getChallengeReward(rewardId);
+					})
+					.filter(reward -> reward != null)
+					.collect(Collectors.toList());
 				
-				ChallengeConfig config = settings.getChallengeConfig(generated.getConfigId());
-				if (config == null) return;
-				
-				Entry<Integer, Map<String, RewardInfo>> rewardsEntry = config.getGenerator().getRewardsList().floorEntry(generated.getLevel());
-				if (rewardsEntry == null) return;
-				
-				Map<String, RewardInfo> rewards = rewardsEntry.getValue();
-				generated.getRewards().forEach(rewardId -> {
-					RewardInfo rewardInfo = rewards.get(rewardId.toLowerCase());
-					if (rewardInfo == null) return;
-					
+				rewards.forEach(rewardInfo -> {
 					rewardInfo.getActionManipulator().process(p);
 				});
 			}

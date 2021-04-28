@@ -31,9 +31,10 @@ public class ChallengeDataHandler extends IDataHandler<GoldenChallenges, Challen
 				UUID uuid = UUID.fromString(rs.getString(COL_USER_UUID));
 				String name = rs.getString(COL_USER_NAME);
 				long lastOnline = rs.getLong(COL_USER_LAST_ONLINE);
-				Map<ChallengeType, ChallengeUserData> storedBonus = gson.fromJson(rs.getString("challengeData"), new TypeToken<Map<ChallengeType, ChallengeUserData>>(){}.getType());
+				Map<ChallengeType, ChallengeUserData> challengeData = gson.fromJson(rs.getString("challengeData"), new TypeToken<Map<ChallengeType, ChallengeUserData>>(){}.getType());
+				Map<ChallengeType, Integer> challengeCount = gson.fromJson(rs.getString("challengeCount"), new TypeToken<Map<ChallengeType, Integer>>(){}.getType());
 				
-				return new ChallengeUser(plugin, uuid, name, lastOnline, storedBonus);
+				return new ChallengeUser(plugin, uuid, name, lastOnline, challengeData, challengeCount);
 			}
 			catch (SQLException e) {
 				return null;
@@ -50,10 +51,18 @@ public class ChallengeDataHandler extends IDataHandler<GoldenChallenges, Challen
 	}
 	
 	@Override
+	protected void onTableCreate() {
+		super.onTableCreate();
+		
+		this.addColumn(TABLE_USERS, "challengeCount", DataTypes.STRING.build(this.dataType), "{}");
+	}
+
+	@Override
 	@NotNull
 	protected LinkedHashMap<String, String> getColumnsToCreate() {
 		LinkedHashMap<String, String> map = new LinkedHashMap<>();
 		map.put("challengeData", DataTypes.STRING.build(this.dataType));
+		map.put("challengeCount", DataTypes.STRING.build(this.dataType));
 		return map;
 	}
 
@@ -62,6 +71,7 @@ public class ChallengeDataHandler extends IDataHandler<GoldenChallenges, Challen
 	protected LinkedHashMap<String, String> getColumnsToSave(@NotNull ChallengeUser user) {
 		LinkedHashMap<String, String> map = new LinkedHashMap<>();
 		map.put("challengeData", this.gson.toJson(user.getChallengeData()));
+		map.put("challengeCount", this.gson.toJson(user.getChallengeCount()));
 		return map;
 	}
 

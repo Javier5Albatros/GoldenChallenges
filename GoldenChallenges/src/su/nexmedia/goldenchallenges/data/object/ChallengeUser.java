@@ -26,10 +26,16 @@ import su.nexmedia.goldenchallenges.manager.type.ChallengeType;
 public class ChallengeUser extends IAbstractUser<GoldenChallenges> {
 
 	private Map<ChallengeType, ChallengeUserData> challengeData;
+	private Map<ChallengeType, Integer> challengeCount;
 	
-	public ChallengeUser(@NotNull GoldenChallenges plugin, @NotNull Player p) {
-		this(plugin, p.getUniqueId(), p.getName(), System.currentTimeMillis(), 
-				new HashMap<>()
+	public ChallengeUser(@NotNull GoldenChallenges plugin, @NotNull Player player) {
+		this(
+			plugin, 
+			player.getUniqueId(), 
+			player.getName(), 
+			System.currentTimeMillis(), 
+			new HashMap<>(),
+			new HashMap<>()
 		);
 	}
 
@@ -38,9 +44,12 @@ public class ChallengeUser extends IAbstractUser<GoldenChallenges> {
 			@NotNull UUID uuid, 
 			@NotNull String name, 
 			long lastOnline,
-			@NotNull Map<ChallengeType, ChallengeUserData> challengeData) {
+			@NotNull Map<ChallengeType, ChallengeUserData> challengeData,
+			@NotNull Map<ChallengeType, Integer> challengeCount
+	) {
 		super(plugin, uuid, name, lastOnline);
 		this.challengeData = challengeData;
+		this.challengeCount = challengeCount;
 		
 		this.validateChallenges();
 		this.updateChallenges(false);
@@ -54,6 +63,19 @@ public class ChallengeUser extends IAbstractUser<GoldenChallenges> {
 	@NotNull
 	public ChallengeUserData getChallengeData(@NotNull ChallengeType type) {
 		return this.challengeData.computeIfAbsent(type, data -> new ChallengeUserData());
+	}
+	
+	@NotNull
+	public Map<ChallengeType, Integer> getChallengeCount() {
+		return this.challengeCount;
+	}
+	
+	public int getChallengeCount(@NotNull ChallengeType type) {
+		return this.challengeCount.computeIfAbsent(type, amount -> 0);
+	}
+	
+	public void addChallengeCount(@NotNull ChallengeType type, int amount) {
+		this.challengeCount.put(type, Math.max(0, this.getChallengeCount(type) + amount));
 	}
 	
 	public boolean hasChallenges(@NotNull ChallengeType type) {

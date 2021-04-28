@@ -44,6 +44,7 @@ public class ChallengesMainGUI extends NGUI<GoldenChallenges> {
 				if (settings == null) return;
 				
 				settings.openGUI(p);
+				return;
 			}
 		};
 		
@@ -65,7 +66,7 @@ public class ChallengesMainGUI extends NGUI<GoldenChallenges> {
 	}
 
 	@Override
-	protected void onCreate(@NotNull Player p, @NotNull Inventory inv, int page) {
+	protected void onCreate(@NotNull Player player, @NotNull Inventory inv, int page) {
 		
 	}
 
@@ -85,8 +86,8 @@ public class ChallengesMainGUI extends NGUI<GoldenChallenges> {
 	}
 
 	@Override
-	protected void replaceMeta(@NotNull Player p, @NotNull ItemStack item, @NotNull GuiItem guiItem) {
-		super.replaceMeta(p, item, guiItem);
+	protected void replaceMeta(@NotNull Player player, @NotNull ItemStack item, @NotNull GuiItem guiItem) {
+		super.replaceMeta(player, item, guiItem);
 		
 		ItemMeta meta = item.getItemMeta();
 		if (meta == null) return;
@@ -98,7 +99,7 @@ public class ChallengesMainGUI extends NGUI<GoldenChallenges> {
 		if (type == null || !type.getClass().equals(ChallengeType.class)) return;
 		
 		ChallengeType challengeType = (ChallengeType) type;
-		ChallengeUser user = plugin.getUserManager().getOrLoadUser(p);
+		ChallengeUser user = plugin.getUserManager().getOrLoadUser(player);
 		if (user == null) return;
 		
 		ChallengeUserData userData = user.getChallengeData(challengeType);

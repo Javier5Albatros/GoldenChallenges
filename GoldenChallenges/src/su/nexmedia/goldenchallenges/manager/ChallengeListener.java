@@ -93,6 +93,9 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 		Player player = e.getPlayer().getPlayer();
 		if (player == null) return;
 		
+		// Add challenge completed count.
+		e.getUser().addChallengeCount(e.getType(), 1);
+		
 		ChallengeUserProgress progress = e.getProgress();
 		plugin.lang().Challenge_Notify_Challenge_Completed
 			.replace(progress.replacePlaceholders(""))
@@ -110,9 +113,12 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onChallengeBlockBreak(BlockBreakEvent e) {
 		Block block = e.getBlock();
-		if (block.hasMetadata(META_BLOCK_PLACED)) return;
+		if (block.hasMetadata(META_BLOCK_PLACED)) {
+			block.removeMetadata(META_BLOCK_PLACED, plugin);
+			return;
+		}
 		
-		// Do not give money for ungrowth plants, but ignore sugar cane and cactus.
+		// Do not count challenge for ungrowth plants, but ignore sugar cane and cactus.
 		BlockData blockData = block.getBlockData();
 		Material blockType = block.getType();
 		if (blockType != Material.SUGAR_CANE && blockType != Material.CACTUS && blockData instanceof Ageable) {
@@ -131,9 +137,14 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 		Block block = e.getBlock();
 		BlockData blockData = block.getBlockData();
 		Material type = block.getType();
-		if (blockData instanceof Ageable && type != Material.CACTUS && type != Material.SUGAR_CANE) return;
 		
-		e.getBlock().setMetadata(META_BLOCK_PLACED, new FixedMetadataValue(plugin, true));
+		// Add custom metadata value to all blocks except growing plants
+		// so plugin will not count these blocks in BLOCK_BREAK objective.
+		if (!(blockData instanceof Ageable) || type == Material.CACTUS || type == Material.SUGAR_CANE) {
+			e.getBlock().setMetadata(META_BLOCK_PLACED, new FixedMetadataValue(plugin, true));
+		}
+		
+		this.manager.progressChallenge(e.getPlayer(), ChallengeJobType.BLOCK_PLACE, type.name(), 1);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

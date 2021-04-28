@@ -15,7 +15,7 @@ public class UserManager extends IUserManager<GoldenChallenges, ChallengeUser> {
 
 	@Override
 	@NotNull
-	protected ChallengeUser createData(@NotNull Player p) {
-		return new ChallengeUser(plugin, p);
+	protected ChallengeUser createData(@NotNull Player player) {
+		return new ChallengeUser(plugin, player);
 	}
 }

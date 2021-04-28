@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -23,14 +23,17 @@ import su.nexmedia.engine.manager.api.gui.GuiItem;
 import su.nexmedia.engine.manager.api.gui.JIcon;
 import su.nexmedia.engine.manager.api.gui.NGUI;
 import su.nexmedia.engine.manager.api.task.ITask;
+import su.nexmedia.engine.manager.editor.object.IEditorActionsMain.ActionBuilder;
 import su.nexmedia.engine.utils.NumberUT;
 import su.nexmedia.engine.utils.StringUT;
 import su.nexmedia.engine.utils.TimeUT;
+import su.nexmedia.engine.utils.actions.ActionCategory;
+import su.nexmedia.engine.utils.actions.ActionManipulator;
 import su.nexmedia.goldenchallenges.GoldenChallenges;
+import su.nexmedia.goldenchallenges.api.GoldenChallengesAPI;
 import su.nexmedia.goldenchallenges.data.object.ChallengeUser;
 import su.nexmedia.goldenchallenges.data.object.ChallengeUserData;
 import su.nexmedia.goldenchallenges.data.object.ChallengeUserProgress;
-import su.nexmedia.goldenchallenges.manager.api.ChallengeConfig.Generator.RewardInfo;
 import su.nexmedia.goldenchallenges.manager.type.ChallengeType;
 
 public class ChallengeSettings extends LoadableItem implements Cleanable {
@@ -55,7 +58,77 @@ public class ChallengeSettings extends LoadableItem implements Cleanable {
 		this.challengesAmount = cfg.getInt("settings.challenges-amount", 3);
 		this.challenges = new HashMap<>();
 		
+		List<String> rewardCount = new ArrayList<>();
 		for (JYML cfg2 : JYML.loadAll(cfg.getFile().getParentFile().getAbsolutePath() + "/challenges/", true)) {
+			
+			// ---------------- Update rewards section to new version.
+			JYML cfgRewards = new JYML(plugin.getDataFolder() + "/rewards/", "rewards_" + type.name().toLowerCase() + "_backup.yml");
+			
+			cfg2.getSection("generator.rewards.list").forEach(sLevel -> {
+				if (cfg2.getSection("generator.rewards.list." + sLevel).isEmpty()) return;
+				
+				int level = StringUT.getInteger(sLevel, -1);
+				if (level <= 0) return;
+				
+				List<String> oldRewards = new ArrayList<>();
+				
+				cfg2.getSection("generator.rewards.list." + sLevel).forEach(rewardId -> {
+					oldRewards.add(rewardId);
+					
+					String path2 = "generator.rewards.list." + sLevel + "." + rewardId + ".";
+					List<String> lore = StringUT.color(cfg2.getStringList(path2 + "lore"));
+					ActionManipulator manipulator = new ActionManipulator(plugin, cfg2, path2 + "custom-actions");
+					
+					String rewardNewPath = cfgRewards.contains(rewardId) ? rewardId + rewardCount.size() : rewardId;
+					
+					cfgRewards.set(rewardNewPath + ".lore", lore);
+					
+					Map<String, ActionBuilder> actionBuilders = new HashMap<>();
+					manipulator.getActions().forEach((id, section) -> {
+						ActionBuilder builder = new ActionBuilder(section, id);
+						actionBuilders.put(id, builder);
+					});
+					
+					actionBuilders.forEach((actId, builder) -> {
+						for (ActionCategory category : ActionCategory.values()) {
+							List<String> lines = new ArrayList<>();
+							String sub;
+							if (category == ActionCategory.TARGETS) sub = "target-selectors";
+							else if (category == ActionCategory.CONDITIONS) sub = "conditions.list";
+							else if (category == ActionCategory.ACTIONS) sub = "action-executors";
+							else continue;
+							
+							builder.getParametized(category).values().forEach(mapPz -> {
+								mapPz.forEach((pz, mapParam) -> {
+									String prefix = "[" + pz.getKey() + "] ";
+									StringBuilder paramBuilder = new StringBuilder();
+									
+									mapParam.forEach((param, value) -> {
+										if (paramBuilder.length() > 0) paramBuilder.append(" ");
+										paramBuilder.append("~" + param + ": " + value + ";");
+									});
+									
+									String line = prefix + paramBuilder.toString();
+									lines.add(line);
+								});
+							});
+							
+							cfgRewards.set(rewardNewPath + ".custom-actions." + actId + "." + sub, lines);
+						}
+					});
+					
+					
+					rewardCount.add(rewardId);
+				});
+				
+				cfg2.set("generator.rewards.list." + sLevel, oldRewards);
+			});
+			
+			cfg2.saveChanges();
+			cfgRewards.saveChanges();
+			// ---------------- Update rewards end
+			
+			
 			try {
 				ChallengeConfig challengeConfig = new ChallengeConfig(plugin, cfg2);
 				this.challenges.put(challengeConfig.getId(), challengeConfig);
@@ -238,18 +311,18 @@ public class ChallengeSettings extends LoadableItem implements Cleanable {
 						continue;
 					}
 					if (line.equalsIgnoreCase("%rewards%")) {
-						Entry<Integer, Map<String, RewardInfo>> rewardsEntry = config.getGenerator().getRewardsList().floorEntry(generated.getLevel());
-						if (rewardsEntry == null) continue;
-						
-						Map<String, RewardInfo> rewards = rewardsEntry.getValue();
+						List<RewardInfo> rewards = generated.getRewards().stream()
+							.map((rewardId) -> {
+								return GoldenChallengesAPI.getChallengeManager().getChallengeReward(rewardId);
+							})
+							.filter(reward -> reward != null)
+							.collect(Collectors.toList());
 						if (rewards.isEmpty()) continue;
 						
+						// Display reward lore.
 						for (String line2 : this.formatRewards) {
 							if (line2.contains("%reward-lore%")) {
-								generated.getRewards().forEach(rewardId -> {
-									RewardInfo rewardInfo = rewards.get(rewardId.toLowerCase());
-									if (rewardInfo == null) return;
-									
+								rewards.forEach(rewardInfo -> {
 									rewardInfo.getLore().forEach(rewardLine -> {
 										lore2.add(line2.replace("%reward-lore%", rewardLine));
 									});
