@@ -167,6 +167,9 @@ public class ChallengeListener extends IListener<GoldenChallenges> {
 			});
 		}
 		else {
+		    ItemStack cursor = e.getCursor();
+		    if (cursor != null && !ItemUT.isAir(cursor) && (!cursor.isSimilar(craft) || cursor.getAmount() >= cursor.getMaxStackSize())) return;
+		    
 			this.manager.progressChallenge(player, ChallengeJobType.ITEM_CRAFT, type, 1);
 		}
 	}
