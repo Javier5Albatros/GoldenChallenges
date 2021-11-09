@@ -1,0 +1,65 @@
+name: '%generator-name% &7Lv. %generator-level%'
+type: ITEM_COOK
+icon:
+  material: 'COOKED_COD'
+  name: '%name%'
+  lore: []
+  item-flags:
+  - '*'
+
+generator:
+  names:
+  - '&6Fish Cook'
+  
+  levels:
+    minimum: 1
+    maximum: 5
+  
+  objectives:
+    amount:
+      minimum: '1' # Formula
+      maximum: '2' # Formula
+      list:
+        '1': # Challenge level
+        - 'COOKED_COD'
+        - 'COOKED_SALMON'
+    
+    progress:
+      default: # Objective name
+        minimum: '4 * %level%' # Formula
+        maximum: '6 * %level%' # Formula
+    
+  affected-worlds:
+    minimum: '1' # Formula
+    maximum: '1' # Formula
+    list: {}
+  
+  rewards:
+    minimum: '1' # Formula
+    maximum: '2' # Formula
+    list:
+      '1': # Challenge level
+        reward1:
+          lore:
+          - '$2500'
+          custom-actions:
+            default:
+              target-selectors:
+              - '[SELF] ~name: self;'
+              conditions:
+                list: []
+                actions-on-fail: 'null'
+              action-executors:
+              - '[COMMAND_CONSOLE] ~message: eco give %target% 2500; ~target: self;'
+        reward2:
+          lore:
+          - 'x2 Diamonds'
+          custom-actions:
+            default:
+              target-selectors:
+              - '[SELF] ~name: self;'
+              conditions:
+                list: []
+                actions-on-fail: 'null'
+              action-executors:
+              - '[COMMAND_CONSOLE] ~message: give %target% diamond 2; ~target: self;'

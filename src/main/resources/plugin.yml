@@ -1,0 +1,48 @@
+main: su.nexmedia.goldenchallenges.GoldenChallenges
+version: 1.2.2
+name: GoldenChallenges
+author: NightExpress
+desciption: Advanced challenges plugin for your server and players.
+depend: [NexEngine]
+softdepend: [PlaceholderAPI, Citizens]
+api-version: 1.15
+permissions:
+#--------------------------------------------------------#
+  goldenchallenges.admin:
+    description: Full plugin access.
+    default: op
+    children:
+      goldenchallenges.user: true
+      goldenchallenges.cmd: true
+      goldenchallenges.type: true
+#--------------------------------------------------------#
+  goldenchallenges.cmd:
+    description: Access to all plugin commands.
+    default: op
+    children:
+      goldenchallenges.cmd.open: true
+  goldenchallenges.cmd.open:
+    description: Access to /challenges open command.
+    default: true
+#--------------------------------------------------------#
+  goldenchallenges.type:
+    description: Full challenge access.
+    default: op
+    children:
+      goldenchallenges.type.*: true
+      goldenchallenges.type.daily: true
+      goldenchallenges.type.weekly: true
+      goldenchallenges.type.monthly: true
+  goldenchallenges.type.*:
+    description: Access to all challenge types.
+    default: true
+  goldenchallenges.type.daily:
+    description: Access to Daily challenges.
+    default: true
+  goldenchallenges.type.weekly:
+    description: Access to Weekly challenges.
+    default: true
+  goldenchallenges.type.monthly:
+    description: Access to Monthly challenges.
+    default: true
+#--------------------------------------------------------#

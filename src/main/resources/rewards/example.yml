@@ -1,0 +1,22 @@
+reward1:
+  lore:
+    - $2500
+  custom-actions:
+    default:
+      target-selectors:
+        - '[SELF] ~name: self;'
+      conditions:
+        list: []
+      action-executors:
+        - '[COMMAND_CONSOLE] ~message: eco give %target% 2500; ~target: self;'
+reward2:
+  lore:
+    - x2 Diamonds
+  custom-actions:
+    default:
+      target-selectors:
+        - '[SELF] ~name: self;'
+      conditions:
+        list: []
+      action-executors:
+        - '[COMMAND_CONSOLE] ~message: give %target% diamond 2; ~target: self;'
