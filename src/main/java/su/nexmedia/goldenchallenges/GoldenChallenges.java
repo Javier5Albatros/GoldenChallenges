@@ -66,7 +66,6 @@ public class GoldenChallenges extends NexDataPlugin<GoldenChallenges, ChallengeU
 
 	private boolean setupNMS() {
     	Version current = Version.CURRENT;
-		System.out.println(current);
     	if (current == null) return false;
     	
     	String pack = ChallengeNMS.class.getPackage().getName();

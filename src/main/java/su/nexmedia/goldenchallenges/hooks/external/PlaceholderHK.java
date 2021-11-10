@@ -10,7 +10,12 @@ import su.nexmedia.engine.utils.CollectionsUT;
 import su.nexmedia.engine.utils.NumberUT;
 import su.nexmedia.goldenchallenges.GoldenChallenges;
 import su.nexmedia.goldenchallenges.data.object.ChallengeUser;
+import su.nexmedia.goldenchallenges.data.object.ChallengeUserData;
+import su.nexmedia.goldenchallenges.data.object.ChallengeUserProgress;
 import su.nexmedia.goldenchallenges.manager.type.ChallengeType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlaceholderHK extends NHook<GoldenChallenges> {
 	
@@ -74,6 +79,24 @@ public class PlaceholderHK extends NHook<GoldenChallenges> {
 				
 				ChallengeUser user = plugin.getUserManager().getOrLoadUser(player);
 				return user == null ? "N/A" : NumberUT.format(user.getChallengeCount(cType));
+			}
+
+			if(params.startsWith("nombre_")) {
+				ChallengeUser user = plugin.getUserManager().getOrLoadUser(player);
+				String[] parts = params.split("_");
+				ChallengeType challengeType = CollectionsUT.getEnum(parts[1], ChallengeType.class);
+				ChallengeUserData userData = user.getChallengeData(challengeType);
+				List<ChallengeUserProgress> progressList = new ArrayList<>(userData.getChallengeProgresses());
+				return progressList.get(Integer.parseInt(parts[2])-1).getChallengeGenerated().getName();
+			}
+
+			if(params.startsWith("progreso_")) {
+				ChallengeUser user = plugin.getUserManager().getOrLoadUser(player);
+				String[] parts = params.split("_");
+				ChallengeType challengeType = CollectionsUT.getEnum(parts[1], ChallengeType.class);
+				ChallengeUserData userData = user.getChallengeData(challengeType);
+				List<ChallengeUserProgress> progressList = new ArrayList<>(userData.getChallengeProgresses());
+				return NumberUT.format(progressList.get(Integer.parseInt(parts[2])-1).getProgressPercent());
 			}
 			
 			return null;
