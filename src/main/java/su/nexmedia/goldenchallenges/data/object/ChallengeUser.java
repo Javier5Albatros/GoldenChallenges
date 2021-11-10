@@ -17,6 +17,7 @@ import su.nexmedia.engine.utils.random.Rnd;
 import su.nexmedia.goldenchallenges.GoldenChallenges;
 import su.nexmedia.goldenchallenges.api.events.PlayerChallengeCompleteEvent;
 import su.nexmedia.goldenchallenges.api.events.PlayerChallengeObjectiveEvent;
+import su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeEvent;
 import su.nexmedia.goldenchallenges.manager.api.ChallengeConfig;
 import su.nexmedia.goldenchallenges.manager.api.ChallengeGenerated;
 import su.nexmedia.goldenchallenges.manager.api.ChallengeSettings;
@@ -176,15 +177,19 @@ public class ChallengeUser extends IAbstractUser<GoldenChallenges> {
 			ChallengeUserData userData = this.getChallengeData(challengeType);
 			userData.addObjectiveProgress(op, jobType, obj, amount).forEach(progress -> {
 				if (progress.isCompleted()) {
-					PlayerChallengeCompleteEvent event = new PlayerChallengeCompleteEvent(op, challengeType, this, progress);
+					su.nexmedia.goldenchallenges.api.events.PlayerChallengeCompleteEvent event = new su.nexmedia.goldenchallenges.api.events.PlayerChallengeCompleteEvent(op, challengeType, this, progress);
+					su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeCompleteEvent customEvent = new su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeCompleteEvent(op, challengeType, this, progress);
 					plugin.getPluginManager().callEvent(event);
+					plugin.getPluginManager().callEvent(customEvent);
 				}
 				else {
 					String obj2 = obj;
 					if (!progress.getChallengeGenerated().hasObjectiveExact(obj)) obj2 = JStrings.MASK_ANY;
-					
-					PlayerChallengeObjectiveEvent event = new PlayerChallengeObjectiveEvent(op, challengeType, this, progress, obj2, amount);
+
+					su.nexmedia.goldenchallenges.api.events.PlayerChallengeObjectiveEvent event = new su.nexmedia.goldenchallenges.api.events.PlayerChallengeObjectiveEvent(op, challengeType, this, progress, obj2, amount);
+					su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeObjectiveEvent customEvent = new su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeObjectiveEvent(op, challengeType, this, progress, obj2, amount);
 					plugin.getPluginManager().callEvent(event);
+					plugin.getPluginManager().callEvent(customEvent);
 				}
 			});
 		}
