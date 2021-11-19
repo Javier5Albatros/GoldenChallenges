@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -15,9 +16,6 @@ import su.nexmedia.engine.data.users.IAbstractUser;
 import su.nexmedia.engine.utils.constants.JStrings;
 import su.nexmedia.engine.utils.random.Rnd;
 import su.nexmedia.goldenchallenges.GoldenChallenges;
-import su.nexmedia.goldenchallenges.api.events.PlayerChallengeCompleteEvent;
-import su.nexmedia.goldenchallenges.api.events.PlayerChallengeObjectiveEvent;
-import su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeEvent;
 import su.nexmedia.goldenchallenges.manager.api.ChallengeConfig;
 import su.nexmedia.goldenchallenges.manager.api.ChallengeGenerated;
 import su.nexmedia.goldenchallenges.manager.api.ChallengeSettings;
@@ -175,19 +173,28 @@ public class ChallengeUser extends IAbstractUser<GoldenChallenges> {
 		
 		for (ChallengeType challengeType : ChallengeType.getEnabled()) {
 			ChallengeUserData userData = this.getChallengeData(challengeType);
-			userData.addObjectiveProgress(op, jobType, obj, amount).forEach(progress -> {
-				if (progress.isCompleted()) {
-					su.nexmedia.goldenchallenges.api.events.PlayerChallengeCompleteEvent event = new su.nexmedia.goldenchallenges.api.events.PlayerChallengeCompleteEvent(op, challengeType, this, progress);
-					su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeCompleteEvent customEvent = new su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeCompleteEvent(op, challengeType, this, progress);
+			double oldProgress;
+			List <ChallengeUserProgress> challenges = userData.getChallengeProgresses().stream()
+					.filter(challengeUserProgress -> challengeUserProgress.getChallengeGenerated().getObjectives().keySet().contains(obj))
+					.collect(Collectors.toList());
+			if(challenges.size() != 0) {
+				oldProgress = challenges.get(0).getProgressPercent();
+			} else {
+				oldProgress = 0;
+			}
+			userData.addObjectiveProgress(op, jobType, obj, amount).forEach(newProgress -> {
+				if (newProgress.isCompleted()) {
+					su.nexmedia.goldenchallenges.api.events.PlayerChallengeCompleteEvent event = new su.nexmedia.goldenchallenges.api.events.PlayerChallengeCompleteEvent(op, challengeType, this, newProgress);
+					su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeCompleteEvent customEvent = new su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeCompleteEvent(op, challengeType, this, oldProgress, newProgress);
 					plugin.getPluginManager().callEvent(event);
 					plugin.getPluginManager().callEvent(customEvent);
 				}
 				else {
 					String obj2 = obj;
-					if (!progress.getChallengeGenerated().hasObjectiveExact(obj)) obj2 = JStrings.MASK_ANY;
+					if (!newProgress.getChallengeGenerated().hasObjectiveExact(obj)) obj2 = JStrings.MASK_ANY;
 
-					su.nexmedia.goldenchallenges.api.events.PlayerChallengeObjectiveEvent event = new su.nexmedia.goldenchallenges.api.events.PlayerChallengeObjectiveEvent(op, challengeType, this, progress, obj2, amount);
-					su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeObjectiveEvent customEvent = new su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeObjectiveEvent(op, challengeType, this, progress, obj2, amount);
+					su.nexmedia.goldenchallenges.api.events.PlayerChallengeObjectiveEvent event = new su.nexmedia.goldenchallenges.api.events.PlayerChallengeObjectiveEvent(op, challengeType, this, newProgress, obj2, amount);
+					su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeObjectiveEvent customEvent = new su.nexmedia.goldenchallenges.api.events.custom.PlayerChallengeObjectiveEvent(op, challengeType, this, oldProgress, newProgress, obj2, amount);
 					plugin.getPluginManager().callEvent(event);
 					plugin.getPluginManager().callEvent(customEvent);
 				}

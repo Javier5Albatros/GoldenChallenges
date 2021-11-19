@@ -15,19 +15,22 @@ public class PlayerChallengeEvent extends Event {
     protected ChallengeType type;
     protected ChallengeUser user;
     protected ChallengeUserData userData;
-    protected ChallengeUserProgress progress;
+    protected double oldProgress;
+    protected ChallengeUserProgress newProgress;
     private static final HandlerList HANDLERS = new HandlerList();
 
     public PlayerChallengeEvent(
             @NotNull OfflinePlayer player,
             @NotNull ChallengeType type,
             @NotNull ChallengeUser user,
-            @NotNull ChallengeUserProgress progress) {
+            @NotNull double oldProgress,
+            @NotNull ChallengeUserProgress newProgress) {
         this.player = player;
         this.type = type;
         this.user = user;
         this.userData = this.user.getChallengeData(this.type);
-        this.progress = progress;
+        this.oldProgress = oldProgress;
+        this.newProgress = newProgress;
     }
 
     @NotNull
@@ -51,8 +54,13 @@ public class PlayerChallengeEvent extends Event {
     }
 
     @NotNull
-    public ChallengeUserProgress getProgress() {
-        return progress;
+    public ChallengeUserProgress getNewProgress() {
+        return newProgress;
+    }
+
+    @NotNull
+    public double getOldProgress() {
+        return oldProgress;
     }
 
     @NotNull

@@ -15,10 +15,11 @@ public class PlayerChallengeObjectiveEvent extends PlayerChallengeEvent {
             @NotNull OfflinePlayer player,
             @NotNull ChallengeType type,
             @NotNull ChallengeUser user,
-            @NotNull ChallengeUserProgress progress,
+            @NotNull double oldProgress,
+            @NotNull ChallengeUserProgress newProgress,
             @NotNull String objective,
             double amount) {
-        super(player, type, user, progress);
+        super(player, type, user, oldProgress, newProgress);
 
         this.objective = objective.toUpperCase();
         this.amount = amount;

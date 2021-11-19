@@ -12,7 +12,8 @@ public class PlayerChallengeCompleteEvent extends PlayerChallengeEvent {
             @NotNull OfflinePlayer player,
             @NotNull ChallengeType type,
             @NotNull ChallengeUser user,
-            @NotNull ChallengeUserProgress progress) {
-        super(player, type, user, progress);
+            @NotNull double oldProgress,
+            @NotNull ChallengeUserProgress newProgress) {
+        super(player, type, user, oldProgress, newProgress);
     }
 }
